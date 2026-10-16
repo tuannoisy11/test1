@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Bếp Mama Việt</title>
+<style>
+:root{--pink:#ff6f91;--pink-d:#d94a70;--brown:#6b3e26;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;align-items:center;justify-content:center;font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:var(--brown);
+  background:#ffeaf1 repeating-conic-gradient(#ffd6e3 0 25%,#ffeaf1 0 50%) 0 0/48px 48px;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+#stage{position:relative;width:min(100vw,133.333vh);height:min(75vw,100vh);container-type:size;border-radius:1.5cqw;overflow:hidden;box-shadow:0 1cqw 4cqw rgba(160,60,90,.3)}
+#game{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.4cqw;text-align:center;padding:2cqw;font-size:2.4cqw;background:rgba(255,240,245,.82);backdrop-filter:blur(2px)}
+.overlay.show{display:flex}
+#menu{background:radial-gradient(circle at 50% 30%,#fff8fb 0,#ffe0ea 70%)}
+h1{margin:0;font-size:7.5cqw;color:#ff4d79;font-weight:900;letter-spacing:.1cqw;text-shadow:0 .5cqw 0 #fff,0 .9cqw 0 #ffb3c8}
+h2{margin:0;font-weight:900}
+.sub{margin:.6cqw 0 0;font-size:2.6cqw;font-weight:700}
+.row{display:flex;align-items:center;justify-content:center;gap:2cqw}
+#mamaMenu{width:24cqw;height:24cqw}
+#mamaIntro,#mamaResult{width:25cqw;height:25cqw}
+.cards{display:flex;gap:2cqw}
+.card{width:26cqw;background:#fff;border:.4cqw solid #ffc2d4;border-radius:2.4cqw;padding:1.2cqw;display:flex;flex-direction:column;align-items:center;gap:.4cqw;cursor:pointer;font-family:inherit;color:var(--brown);box-shadow:0 .6cqw 0 #ffc2d4;transition:transform .12s}
+.card:hover{transform:translateY(-.6cqw) rotate(-1deg)}
+.card canvas{width:100%;height:auto}
+.card b{font-size:3cqw;font-weight:900;color:var(--pink-d)}
+.card small{font-size:1.7cqw}
+.card .best{font-size:1.8cqw;font-weight:800;background:#fff3c4;border-radius:99px;padding:.2cqw 1.2cqw}
+.btn{background:var(--pink);color:#fff;border:none;border-radius:99px;padding:1.2cqw 4cqw;font:900 2.8cqw/1.2 inherit;font-family:inherit;cursor:pointer;box-shadow:0 .6cqw 0 var(--pink-d);transition:transform .1s}
+.btn:active{transform:translateY(.4cqw);box-shadow:0 .2cqw 0 var(--pink-d)}
+.btn.alt{background:#5fb0f5;box-shadow:0 .6cqw 0 #3b86c9}
+#muteBtn{position:absolute;right:1.5cqw;top:1.6cqw;width:5.5cqw;height:5.5cqw;border-radius:50%;border:.3cqw solid #ffb3c8;background:#fff;font-size:2.8cqw;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:center;padding:0}
+.bubble{position:relative;background:#fff;border:.5cqw solid #ffc2d4;border-radius:3cqw;padding:2.2cqw 3cqw;max-width:52cqw;text-align:left}
+.bubble::before{content:"";position:absolute;left:-2.6cqw;top:40%;border:1.3cqw solid transparent;border-right:1.6cqw solid #ffc2d4}
+.bubble .stepno{color:var(--pink-d);font-weight:800;font-size:2cqw}
+.bubble h2{font-size:4.8cqw;color:#ff4d79}
+.bubble p{margin:.8cqw 0 0;font-size:2.5cqw;font-weight:600;line-height:1.35}
+#rateText{font-size:7cqw;color:#ff4d79;text-shadow:0 .4cqw 0 #fff}
+#rateMsg{margin:0;font-size:3cqw;font-weight:800}
+#rateScore{font-size:3.6cqw;font-weight:900}
+#rateScore .stars{color:#ffb800;letter-spacing:.3cqw;font-size:4.6cqw}
+#final h2{font-size:4.4cqw;color:#ff4d79}
+#dishCv{width:50cqw;height:auto}
+#finalMedal{font-size:3.8cqw;font-weight:900}
+#finalScore{font-size:2.6cqw;font-weight:800}
+#stepScores{display:flex;flex-wrap:wrap;gap:.6cqw;justify-content:center;max-width:80cqw;font-size:1.8cqw}
+#stepScores span{background:#fff;border-radius:99px;padding:.3cqw 1.2cqw;border:.25cqw solid #ffd0dd}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="game"></canvas>
+  <button id="muteBtn" title="Bật/tắt âm thanh">🔊</button>
+
+  <div id="menu" class="overlay show">
+    <div class="row">
+      <canvas id="mamaMenu" width="300" height="300"></canvas>
+      <div><h1>Bếp Mama Việt</h1><p class="sub">Vào bếp nấu món Việt cùng Mama nào! 🍲</p></div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <div id="intro" class="overlay">
+    <div class="row">
+      <canvas id="mamaIntro" width="300" height="300"></canvas>
+      <div class="bubble"><div class="stepno" id="introStep"></div><h2 id="introTitle"></h2><p id="introHint"></p></div>
+    </div>
+    <button class="btn" id="startBtn">Bắt đầu!</button>
+  </div>
+
+  <div id="result" class="overlay">
+    <canvas id="mamaResult" width="300" height="300"></canvas>
+    <h2 id="rateText"></h2>
+    <p id="rateMsg"></p>
+    <div id="rateScore"></div>
+    <button class="btn" id="nextBtn">Tiếp tục ➜</button>
+  </div>
+
+  <div id="final" class="overlay">
+    <h2>Hoàn thành món <span id="finalName"></span>!</h2>
+    <canvas id="dishCv" width="600" height="330"></canvas>
+    <div id="finalMedal"></div>
+    <div id="finalScore"></div>
+    <div id="stepScores"></div>
+    <div class="row"><button class="btn" id="againBtn">Nấu lại</button><button class="btn alt" id="menuBtn">Về menu</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ================= Cơ bản =================
+const W = 800, H = 600;
+const FONT = '"Segoe UI",Tahoma,Arial,sans-serif';
+const EMOJI_FONT = '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+const $ = id => document.getElementById(id);
+const cv = $('game'), ctx = cv.getContext('2d');
+let SC = 1, T = 0;
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+const sr = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function resize() {
+  const r = cv.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.max(1, Math.round(r.width * dpr));
+  cv.height = Math.max(1, Math.round(r.height * dpr));
+  SC = cv.width / W;
+}
+new ResizeObserver(resize).observe($('stage'));
+resize();
+
+// ================= Vẽ tiện ích =================
+function rrect(c, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  c.beginPath(); c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function ell(c, x, y, rx, ry, rot = 0) { c.beginPath(); c.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2); }
+function circ(c, x, y, r) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); }
+function txt(c, s, x, y, size, color = '#6b3e26', align = 'center', weight = '800') {
+  c.font = `${weight} ${size}px ${FONT}`; c.textAlign = align; c.textBaseline = 'middle'; c.fillStyle = color; c.fillText(s, x, y);
+}
+function outlineTxt(c, s, x, y, size, fill, stroke = '#fff') {
+  c.font = `900 ${size}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.lineJoin = 'round'; c.lineWidth = size / 4.5; c.strokeStyle = stroke; c.strokeText(s, x, y);
+  c.fillStyle = fill; c.fillText(s, x, y);
+}
+function emoji(c, e, x, y, size) { c.font = `${size}px ${EMOJI_FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000'; c.fillText(e, x, y); }
+function star(c, x, y, r1, r2, n, rot) {
+  c.beginPath();
+  for (let i = 0; i < n * 2; i++) { const a = rot + i * Math.PI / n, r = i % 2 ? r2 : r1; c.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); }
+  c.closePath();
+}
+function blob(c, pts) {
+  const n = pts.length, mid = i => [(pts[i % n][0] + pts[(i + 1) % n][0]) / 2, (pts[i % n][1] + pts[(i + 1) % n][1]) / 2];
+  c.beginPath(); const m0 = mid(0); c.moveTo(m0[0], m0[1]);
+  for (let i = 1; i <= n; i++) { const p = pts[i % n], m = mid(i); c.quadraticCurveTo(p[0], p[1], m[0], m[1]); }
+  c.closePath();
+}
+function drawArrow(c, x, y, dir, len) {
+  const ang = { up: -Math.PI / 2, down: Math.PI / 2, left: Math.PI, right: 0 }[dir];
+  const off = ((T * 1.4) % 1) * 50;
+  c.save(); c.translate(x, y); c.rotate(ang); c.translate(off - 25, 0);
+  c.globalAlpha = 0.9;
+  c.beginPath(); c.moveTo(-len / 2, -14); c.lineTo(len / 2 - 30, -14); c.lineTo(len / 2 - 30, -34); c.lineTo(len / 2 + 10, 0);
+  c.lineTo(len / 2 - 30, 34); c.lineTo(len / 2 - 30, 14); c.lineTo(-len / 2, 14); c.closePath();
+  c.fillStyle = '#ff6f91'; c.strokeStyle = '#fff'; c.lineWidth = 6; c.lineJoin = 'round'; c.stroke(); c.fill();
+  c.restore();
+}
+// Màu chín: 0 sống → 1 vàng đẹp → 1.6 cháy
+const CK = [[0, [248, 236, 210]], [1, [226, 160, 52]], [1.6, [110, 55, 18]], [2.2, [35, 22, 12]]];
+function cookColor(v) {
+  v = clamp(v, 0, 2.2);
+  for (let i = 0; i < CK.length - 1; i++) {
+    const [a, ca] = CK[i], [b, cb] = CK[i + 1];
+    if (v <= b) { const t = (v - a) / (b - a); return `rgb(${ca.map((x, j) => Math.round(lerp(x, cb[j], t))).join(',')})`; }
+  }
+  return 'rgb(35,22,12)';
+}
+function drawCookGauge(c, v, x, y, w, h = 24, labels = true) {
+  const g = c.createLinearGradient(x, 0, x + w, 0);
+  [0, 0.3, 0.625, 0.8, 1].forEach(s => g.addColorStop(s, cookColor(s * 1.6)));
+  c.fillStyle = '#fff'; rrect(c, x - 5, y - 5, w + 10, h + 10, (h + 10) / 2); c.fill();
+  c.fillStyle = g; rrect(c, x, y, w, h, h / 2); c.fill();
+  const zx = x + w * 0.88 / 1.6, zw = w * 0.24 / 1.6;
+  c.strokeStyle = '#2ecc71'; c.lineWidth = h > 15 ? 4 : 3; rrect(c, zx, y - 3, zw, h + 6, 5); c.stroke();
+  const px = x + w * clamp(v / 1.6, 0, 1);
+  c.fillStyle = '#d94a70'; c.beginPath(); c.moveTo(px - 9, y - 14); c.lineTo(px + 9, y - 14); c.lineTo(px, y - 2); c.fill();
+  c.fillRect(px - 2, y, 4, h);
+  if (labels) { txt(c, 'Sống', x - 12, y + h / 2, 15, '#7a5a48', 'right'); txt(c, 'Cháy', x + w + 12, y + h / 2, 15, '#7a5a48', 'left'); }
+}
+
+// ================= Âm thanh =================
+const Sfx = {
+  ac: null, muted: false, sz: null, nb: null,
+  init() {
+    if (!this.ac) { try { this.ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { } }
+    if (this.ac && this.ac.state === 'suspended') this.ac.resume();
+  },
+  noiseBuf() {
+    if (!this.nb) { const a = this.ac, b = a.createBuffer(1, a.sampleRate, a.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.nb = b; }
+    return this.nb;
+  },
+  tone(f, d = 0.12, type = 'sine', v = 0.2, slide = 0) {
+    if (this.muted || !this.ac) return;
+    const a = this.ac, o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(f * slide, t + d);
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + 0.02);
+  },
+  noise(d = 0.08, v = 0.3, freq = 2000) {
+    if (this.muted || !this.ac) return;
+    const a = this.ac, s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(), t = a.currentTime;
+    s.buffer = this.noiseBuf(); f.type = 'bandpass'; f.frequency.value = freq;
+    g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+    s.connect(f).connect(g).connect(a.destination); s.start(t); s.stop(t + d + 0.02);
+  },
+  chop() { this.noise(0.07, 0.5, 1600); this.tone(160, 0.06, 'square', 0.05); },
+  pop() { this.tone(500, 0.09, 'sine', 0.22, 2); },
+  good() { this.tone(880, 0.1, 'sine', 0.2); setTimeout(() => this.tone(1320, 0.16, 'sine', 0.2), 80); },
+  bad() { this.tone(220, 0.3, 'sawtooth', 0.1, 0.5); },
+  fanfare() { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => setTimeout(() => this.tone(f, 0.22, 'triangle', 0.18), i * 130)); },
+  sizzleStart() {
+    if (this.muted || !this.ac || this.sz) return;
+    const a = this.ac, s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    s.buffer = this.noiseBuf(); s.loop = true; f.type = 'highpass'; f.frequency.value = 3500; g.gain.value = 0.05;
+    s.connect(f).connect(g).connect(a.destination); s.start(); this.sz = s;
+  },
+  sizzleStop() { if (this.sz) { try { this.sz.stop(); } catch (e) { } this.sz = null; } },
+};
+
+// ================= Hiệu ứng =================
+let pops = [], parts = [];
+function addPop(text, x, y, color = '#ff4d79') { pops.push({ text, x, y, t: 0, color }); }
+function addParts(x, y, color, n = 10, spd = 160) {
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = rand(spd * 0.3, spd); parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, life: rand(0.4, 0.9), t: 0, color, r: rand(3, 7) }); }
+}
+function updFx(dt) {
+  pops.forEach(p => p.t += dt); pops = pops.filter(p => p.t < 1);
+  parts.forEach(p => { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 500 * dt; }); parts = parts.filter(p => p.t < p.life);
+}
+function drawFx(c) {
+  parts.forEach(p => { c.globalAlpha = clamp(1 - p.t / p.life, 0, 1); c.fillStyle = p.color; circ(c, p.x, p.y, p.r); c.fill(); });
+  c.globalAlpha = 1;
+  pops.forEach(p => { c.globalAlpha = clamp(1.4 - p.t * 1.4, 0, 1); outlineTxt(c, p.text, p.x, p.y - p.t * 50, 30, p.color); });
+  c.globalAlpha = 1;
+}
+
+// ================= Nhập liệu (chuột + cảm ứng) =================
+const pointer = { down: false, x: W / 2, y: H / 2 };
+function toLocal(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; }
+cv.addEventListener('pointerdown', e => {
+  if (!e.isPrimary) return; e.preventDefault();
+  try { cv.setPointerCapture(e.pointerId); } catch (_) { }
+  Sfx.init();
+  const p = toLocal(e); pointer.down = true; pointer.x = p.x; pointer.y = p.y;
+  if (state === 'play' && cur.down) cur.down(p);
+});
+cv.addEventListener('pointermove', e => {
+  if (!e.isPrimary) return;
+  const p = toLocal(e); pointer.x = p.x; pointer.y = p.y;
+  if (state === 'play' && cur.move) cur.move(p);
+});
+function onUp(e) {
+  if (!e.isPrimary || !pointer.down) return;
+  const p = toLocal(e); pointer.down = false;
+  if (state === 'play' && cur.up) cur.up(p);
+}
+cv.addEventListener('pointerup', onUp);
+cv.addEventListener('pointercancel', onUp);
+
+// ================= Bối cảnh =================
+function drawKitchen(c) {
+  c.fillStyle = '#fff3e3'; c.fillRect(0, 0, W, H);
+  c.strokeStyle = '#f6dcc0'; c.lineWidth = 2;
+  for (let x = 0; x <= W; x += 50) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 440); c.stroke(); }
+  for (let y = 0; y <= 440; y += 50) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+  c.fillStyle = '#e7b07a'; c.fillRect(0, 440, W, 160);
+  c.fillStyle = '#cf915a'; c.fillRect(0, 440, W, 12);
+  c.strokeStyle = 'rgba(150,90,40,.22)'; c.lineWidth = 3;
+  for (let y = 475; y < H; y += 30) { c.beginPath(); c.moveTo(0, y); c.bezierCurveTo(200, y + 7, 500, y - 7, W, y + 3); c.stroke(); }
+}
+function drawBoard(c, x, y, w, h) {
+  c.fillStyle = 'rgba(0,0,0,.13)'; rrect(c, x + 6, y + 10, w, h, 26); c.fill();
+  c.fillStyle = '#e9c28f'; rrect(c, x, y, w, h, 26); c.fill();
+  c.strokeStyle = '#c08a52'; c.lineWidth = 6; c.stroke();
+  c.strokeStyle = 'rgba(170,110,50,.25)'; c.lineWidth = 2;
+  for (let i = 1; i < 6; i++) { const yy = y + h * i / 6; c.beginPath(); c.moveTo(x + 20, yy); c.bezierCurveTo(x + w * 0.3, yy + 6, x + w * 0.7, yy - 6, x + w - 20, yy); c.stroke(); }
+}
+function drawStove(c, cx, top, heat) {
+  if (heat > 0.02) {
+    for (let i = 0; i < 9; i++) {
+      const fx = cx - 120 + i * 30, h = (18 + heat * 60) * (0.8 + 0.25 * Math.sin(T * 20 + i * 1.7));
+      c.fillStyle = 'rgba(70,130,255,.9)';
+      c.beginPath(); c.moveTo(fx - 11, top); c.quadraticCurveTo(fx - 7, top - h * 0.6, fx, top - h); c.quadraticCurveTo(fx + 7, top - h * 0.6, fx + 11, top); c.fill();
+      c.fillStyle = 'rgba(190,230,255,.9)';
+      c.beginPath(); c.moveTo(fx - 5, top); c.quadraticCurveTo(fx - 3, top - h * 0.35, fx, top - h * 0.55); c.quadraticCurveTo(fx + 3, top - h * 0.35, fx + 5, top); c.fill();
+    }
+  }
+  c.fillStyle = '#3a3a3a'; rrect(c, cx - 210, top, 420, 100, 16); c.fill();
+  c.fillStyle = '#555'; rrect(c, cx - 210, top, 420, 16, 8); c.fill();
+  [-140, 140].forEach(k => { c.fillStyle = '#ddd'; circ(c, cx + k, top + 58, 18); c.fill(); c.fillStyle = '#999'; c.fillRect(cx + k - 3, top + 42, 6, 16); });
+}
+
+// ================= Mama =================
+function drawMama(c, x, y, s, mood) {
+  c.save(); c.translate(x, y); c.scale(s, s); c.translate(0, Math.sin(T * 3) * 3);
+  if (mood === 'angry') {
+    for (let i = 0; i < 12; i++) {
+      const h = 40 + 15 * Math.sin(T * 15 + i * 2);
+      c.save(); c.rotate(i / 12 * Math.PI * 2); c.fillStyle = i % 2 ? '#ff5a1f' : '#ffb21f';
+      c.beginPath(); c.moveTo(-28, -88); c.quadraticCurveTo(-10, -88 - h * 0.6, 0, -92 - h); c.quadraticCurveTo(10, -88 - h * 0.6, 28, -88); c.closePath(); c.fill();
+      c.restore();
+    }
+  }
+  // thân
+  c.fillStyle = '#ff6f91'; rrect(c, -85, 75, 170, 130, 60); c.fill();
+  c.fillStyle = '#fff'; rrect(c, -52, 98, 104, 110, 24); c.fill();
+  c.fillStyle = '#ff6f91'; circ(c, 0, 140, 7); c.fill();
+  c.fillStyle = '#ffd2ad'; c.fillRect(-18, 60, 36, 24);
+  // tóc + mặt
+  c.fillStyle = '#4a2c1a'; ell(c, 0, 0, 96, 98); c.fill();
+  c.fillStyle = '#ffdcbc'; ell(c, 0, 12, 80, 78); c.fill();
+  c.fillStyle = '#4a2c1a'; ell(c, -36, -30, 46, 22, -0.3); c.fill(); ell(c, 36, -30, 46, 22, 0.3); c.fill();
+  // khăn
+  c.fillStyle = '#e63946'; c.beginPath(); c.ellipse(0, -30, 100, 78, 0, 0, Math.PI, true); c.quadraticCurveTo(0, -62, 100, -30); c.closePath(); c.fill();
+  c.fillStyle = '#fff';[[-60, -60], [-22, -84], [24, -82], [62, -58], [0, -60], [-80, -42], [82, -40]].forEach(([a, b]) => { circ(c, a, b, 6); c.fill(); });
+  c.fillStyle = '#e63946'; ell(c, 104, -46, 22, 12, -0.6); c.fill(); ell(c, 108, -24, 20, 11, 0.5); c.fill(); circ(c, 96, -36, 10); c.fill();
+  // mắt
+  c.lineCap = 'round';
+  if (mood === 'happy') {
+    c.strokeStyle = '#3b2416'; c.lineWidth = 6;
+    [-30, 30].forEach(ex => { c.beginPath(); c.arc(ex, 14, 13, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); });
+  } else if (mood === 'angry') {
+    [-30, 30].forEach(ex => {
+      const f = Math.sin(T * 18 + ex) * 4;
+      c.fillStyle = '#ff3b1f'; c.beginPath(); c.moveTo(ex - 12, 20); c.quadraticCurveTo(ex - 15, 2, ex + f, -16); c.quadraticCurveTo(ex + 15, 2, ex + 12, 20); c.closePath(); c.fill();
+      c.fillStyle = '#ffd21f'; c.beginPath(); c.moveTo(ex - 6, 18); c.quadraticCurveTo(ex - 7, 8, ex + f / 2, -2); c.quadraticCurveTo(ex + 7, 8, ex + 6, 18); c.closePath(); c.fill();
+    });
+    c.strokeStyle = '#3b2416'; c.lineWidth = 6;
+    c.beginPath(); c.moveTo(-50, -12); c.lineTo(-14, -2); c.moveTo(50, -12); c.lineTo(14, -2); c.stroke();
+  } else {
+    if ((T % 3.3) < 0.13) { c.strokeStyle = '#3b2416'; c.lineWidth = 5; c.beginPath(); c.moveTo(-40, 10); c.lineTo(-20, 10); c.moveTo(20, 10); c.lineTo(40, 10); c.stroke(); }
+    else [-30, 30].forEach(ex => { c.fillStyle = '#3b2416'; ell(c, ex, 10, 8, 11); c.fill(); c.fillStyle = '#fff'; circ(c, ex + 3, 5, 3); c.fill(); });
+  }
+  c.fillStyle = 'rgba(255,120,140,.45)'; circ(c, -52, 34, 13); c.fill(); circ(c, 52, 34, 13); c.fill();
+  // miệng
+  if (mood === 'happy') {
+    c.fillStyle = '#c0392b'; c.beginPath(); c.moveTo(-24, 40); c.quadraticCurveTo(0, 74, 24, 40); c.closePath(); c.fill();
+    c.fillStyle = '#ff8a8a'; ell(c, 0, 54, 9, 5); c.fill();
+  } else if (mood === 'angry') {
+    c.fillStyle = '#8e1c1c'; ell(c, 0, 50, 14, 10); c.fill();
+  } else {
+    c.strokeStyle = '#a0412d'; c.lineWidth = 5; c.beginPath(); c.moveTo(-18, 42); c.quadraticCurveTo(0, 56, 18, 42); c.stroke();
+  }
+  c.restore();
+}
+
+// ================= Món ăn & nguyên liệu =================
+function drawPhoBowl(c, x, y, s, st) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = 'rgba(0,0,0,.12)'; ell(c, 0, 160, 125, 18); c.fill();
+  c.fillStyle = '#dfe7f2'; rrect(c, -60, 132, 120, 24, 8); c.fill();
+  c.beginPath(); c.moveTo(-172, 0); c.bezierCurveTo(-165, 110, -90, 148, 0, 148); c.bezierCurveTo(90, 148, 165, 110, 172, 0); c.closePath();
+  const g = c.createLinearGradient(0, 0, 0, 150); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#d8e2ef');
+  c.fillStyle = g; c.fill(); c.strokeStyle = '#b8c7dd'; c.lineWidth = 3; c.stroke();
+  c.strokeStyle = '#3a6fd8'; c.lineWidth = 5; c.beginPath(); c.moveTo(-160, 38); c.quadraticCurveTo(0, 100, 160, 38); c.stroke();
+  c.fillStyle = '#3a6fd8';
+  for (let i = -3; i <= 3; i++) { const t = (i * 40 + 160) / 320, yy = (1 - t) * (1 - t) * 38 + 2 * t * (1 - t) * 100 + t * t * 38 + 20; circ(c, i * 40, yy, 6); c.fill(); }
+  c.fillStyle = '#fff'; ell(c, 0, 0, 172, 56); c.fill(); c.strokeStyle = '#3a6fd8'; c.lineWidth = 5; c.stroke();
+  c.save(); ell(c, 0, 4, 156, 46); c.fillStyle = '#eef2f7'; c.fill(); c.clip();
+  const broth = st >= 3;
+  if (broth) {
+    c.fillStyle = '#d79b52'; c.fillRect(-160, -50, 320, 110);
+    c.fillStyle = 'rgba(250,210,120,.7)'; for (let i = 0; i < 9; i++) { ell(c, (sr(i) - 0.5) * 260, (sr(i + 30) - 0.5) * 70, 9, 5); c.fill(); }
+  }
+  if (st >= 1) {
+    for (let pass = 0; pass < 2; pass++) {
+      c.strokeStyle = pass ? '#fffaf0' : '#d9ceb3'; c.lineWidth = pass ? 3 : 6;
+      for (let i = 0; i < 12; i++) {
+        c.beginPath();
+        for (let xx = -140; xx <= 140; xx += 10) { const yy = -18 + i * 4.5 + Math.sin(xx * 0.07 + i * 1.3) * 5; xx === -140 ? c.moveTo(xx, yy) : c.lineTo(xx, yy); }
+        c.stroke();
+      }
+    }
+  }
+  if (st >= 2) {
+    for (let i = 0; i < 5; i++) {
+      c.fillStyle = broth ? '#a0614a' : '#c94a4a'; ell(c, -72 + i * 36, -8 + (i % 2) * 14, 34, 14, -0.3 + i * 0.15); c.fill();
+      c.strokeStyle = broth ? 'rgba(240,200,170,.6)' : 'rgba(255,230,230,.7)'; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(-90 + i * 36, -10 + (i % 2) * 14); c.lineTo(-58 + i * 36, -4 + (i % 2) * 14); c.stroke();
+    }
+  }
+  if (st >= 4) {
+    for (let i = 0; i < 12; i++) { c.fillStyle = '#c8f0c0'; c.strokeStyle = '#3fa046'; c.lineWidth = 3; circ(c, (sr(i + 5) - 0.5) * 250, (sr(i + 50) - 0.5) * 56, 6); c.fill(); c.stroke(); }
+  }
+  if (st >= 5) {
+    [[112, -12, 0.4], [128, 8, -0.3], [96, 18, 0.9], [-118, 8, -0.5], [-104, -14, 0.3], [-130, -4, 1.2]].forEach(([a, b, r]) => {
+      c.fillStyle = '#2e9b3e'; ell(c, a, b, 19, 9, r); c.fill();
+      c.strokeStyle = '#8fd694'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(a - Math.cos(r) * 15, b - Math.sin(r) * 15); c.lineTo(a + Math.cos(r) * 15, b + Math.sin(r) * 15); c.stroke();
+    });
+    c.fillStyle = '#9ccc65'; c.beginPath(); c.arc(55, -22, 18, 0, Math.PI); c.closePath(); c.fill(); c.fillStyle = '#e6f5c9'; c.beginPath(); c.arc(55, -22, 12, 0, Math.PI); c.closePath(); c.fill();
+  }
+  c.restore();
+  if (broth) {
+    c.strokeStyle = 'rgba(190,190,190,.55)'; c.lineWidth = 6; c.lineCap = 'round';
+    for (let k = -1; k <= 1; k++) { c.beginPath(); for (let yy = -25; yy > -110; yy -= 6) { const xx = k * 60 + Math.sin(yy * 0.08 + T * 2 + k) * 10; yy === -25 ? c.moveTo(xx, yy) : c.lineTo(xx, yy); } c.stroke(); }
+  }
+  c.restore();
+}
+
+function drawBanhMi(c, x, y, s, n) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = 'rgba(0,0,0,.12)'; ell(c, 0, 68, 220, 16); c.fill();
+  // vỏ sau
+  const g = c.createLinearGradient(0, -60, 0, 10); g.addColorStop(0, '#d98c2b'); g.addColorStop(1, '#f0b860');
+  c.fillStyle = g; c.beginPath(); c.ellipse(0, -4, 226, 58, 0, Math.PI, Math.PI * 2); c.closePath(); c.fill();
+  c.strokeStyle = 'rgba(255,230,170,.8)'; c.lineWidth = 5; c.lineCap = 'round';
+  [-120, -40, 40, 120].forEach(a => { c.beginPath(); c.moveTo(a - 22, -36); c.lineTo(a + 22, -50); c.stroke(); });
+  c.fillStyle = '#fde9bf'; c.beginPath(); c.ellipse(0, -2, 212, 20, 0, Math.PI, Math.PI * 2); c.closePath(); c.fill();
+  // nhân
+  if (n >= 1) { c.fillStyle = '#8d5a3b'; ell(c, 0, -2, 205, 10); c.fill(); }
+  if (n >= 2) for (let i = 0; i < 6; i++) { c.fillStyle = '#f3d3c4'; ell(c, -170 + i * 68, -8, 34, 18); c.fill(); c.strokeStyle = '#c9a08a'; c.lineWidth = 3; c.stroke(); }
+  if (n >= 3) for (let i = 0; i < 3; i++) { c.save(); c.translate(-140 + i * 120, -20); c.rotate(-0.08 + i * 0.06); c.fillStyle = '#7cc576'; rrect(c, -56, -8, 112, 16, 8); c.fill(); c.strokeStyle = '#3d8b3d'; c.lineWidth = 3; c.stroke(); c.restore(); }
+  if (n >= 4) { c.lineCap = 'round'; c.lineWidth = 6; for (let i = 0; i < 16; i++) { const a = -180 + i * 24; c.strokeStyle = i % 2 ? '#fff3e0' : '#ff9f43'; c.beginPath(); c.moveTo(a, -6); c.lineTo(a + 10, -34 - (i % 3) * 5); c.stroke(); } }
+  if (n >= 5) for (let i = 0; i < 9; i++) {
+    const a = -170 + i * 42; c.strokeStyle = '#2f8a3a'; c.lineWidth = 3; c.beginPath(); c.moveTo(a, -10); c.lineTo(a + 4, -40); c.stroke();
+    c.fillStyle = '#3fae49';[[-7, -44], [7, -46], [0, -52]].forEach(([dx, dy]) => { circ(c, a + 4 + dx, dy, 8); c.fill(); });
+  }
+  if (n >= 6) for (let i = 0; i < 6; i++) { c.strokeStyle = '#e53935'; c.lineWidth = 5; circ(c, -150 + i * 62, -30 + (i % 2) * 6, 7); c.stroke(); }
+  // vỏ trước
+  const g2 = c.createLinearGradient(0, 0, 0, 70); g2.addColorStop(0, '#f2bd68'); g2.addColorStop(1, '#c97a22');
+  c.fillStyle = g2; c.beginPath(); c.ellipse(0, 4, 232, 62, 0, 0, Math.PI); c.closePath(); c.fill();
+  c.strokeStyle = '#fde9bf'; c.lineWidth = 6; c.beginPath(); c.moveTo(-226, 6); c.quadraticCurveTo(0, 18, 226, 6); c.stroke();
+  c.restore();
+}
+
+function drawChaGio(c, x, y, len, col, a) {
+  c.save(); c.translate(x, y); c.rotate(a); const h = len * 0.3;
+  c.fillStyle = col; rrect(c, -len / 2, -h / 2, len, h, h / 2); c.fill();
+  c.strokeStyle = 'rgba(90,45,10,.35)'; c.lineWidth = 2; c.stroke();
+  c.fillStyle = 'rgba(120,60,10,.18)';
+  for (let i = 0; i < 8; i++) { circ(c, -len / 2 + h / 2 + i * (len - h) / 7, (i % 2 ? -1 : 1) * h * 0.15, h * 0.12); c.fill(); }
+  c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = h * 0.12; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-len / 2 + h / 2, -h * 0.25); c.lineTo(len / 2 - h / 2, -h * 0.25); c.stroke();
+  c.restore();
+}
+function dishChaGio(c, x, y, s) {
+  c.save(); c.translate(x, y); c.scale(s, s);
+  c.fillStyle = 'rgba(0,0,0,.12)'; ell(c, 0, 18, 240, 110); c.fill();
+  c.fillStyle = '#fff'; ell(c, 0, 0, 240, 110); c.fill(); c.strokeStyle = '#e0c9a6'; c.lineWidth = 6; c.stroke();
+  c.fillStyle = '#fdf8ef'; ell(c, 0, 0, 200, 88); c.fill();
+  for (let i = 0; i < 5; i++) { c.fillStyle = i % 2 ? '#8fd17f' : '#6cbf5f'; ell(c, -130 + i * 26, -20 + (i % 2) * 30, 58, 30, -0.4 + i * 0.2); c.fill(); c.strokeStyle = '#4f9a4a'; c.lineWidth = 2; c.stroke(); }
+  [[60, -40, 0.25], [-30, -32, 0.2], [20, -2, 0.15], [-10, 34, 0.1], [75, 28, 0.05]].forEach(([a, b, r], i) => drawChaGio(c, a, b, 130, cookColor(0.95 + i * 0.03), r));
+  c.fillStyle = '#fff'; ell(c, 170, -60, 46, 25); c.fill(); c.strokeStyle = '#ddd'; c.lineWidth = 3; c.stroke();
+  c.fillStyle = '#f0a24a'; ell(c, 170, -60, 36, 17); c.fill();
+  c.fillStyle = '#e53935';[[155, -62], [176, -55], [185, -66], [165, -52]].forEach(([a, b]) => { circ(c, a, b, 3); c.fill(); });
+  c.fillStyle = '#fff';[[170, -68], [160, -58]].forEach(([a, b]) => { circ(c, a, b, 2.5); c.fill(); });
+  c.restore();
+}
+function dishPho(c, x, y, s) {
+  drawPhoBowl(c, x, y, s, 5);
+  c.save(); c.translate(x, y); c.scale(s, s); c.lineCap = 'round';
+  [[0, '#8d5524'], [14, '#a0622d']].forEach(([o, col]) => { c.strokeStyle = col; c.lineWidth = 8; c.beginPath(); c.moveTo(40 + o, -40 + o * 0.3); c.lineTo(250, -110 + o); c.stroke(); });
+  c.restore();
+}
+
+const ICON = {
+  noodle(c, x, y, s) { c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = '#f5f0e0'; rrect(c, -26, -16, 52, 32, 10); c.fill(); c.strokeStyle = '#cfc3a3'; c.lineWidth = 2; for (let i = 0; i < 5; i++) { c.beginPath(); for (let xx = -22; xx <= 22; xx += 4) { const yy = -10 + i * 5 + Math.sin(xx * 0.3 + i) * 1.5; xx === -22 ? c.moveTo(xx, yy) : c.lineTo(xx, yy); } c.stroke(); } c.restore(); },
+  beef(c, x, y, s) { c.save(); c.translate(x, y); c.scale(s, s); for (let i = 0; i < 3; i++) { c.fillStyle = '#c94a4a'; ell(c, -14 + i * 14, -6 + i * 6, 18, 9, -0.3); c.fill(); c.strokeStyle = '#ffd6d6'; c.lineWidth = 2; c.beginPath(); c.moveTo(-24 + i * 14, -8 + i * 6); c.lineTo(-6 + i * 14, -4 + i * 6); c.stroke(); } c.restore(); },
+  broth(c, x, y, s) { c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = '#9aa3ad'; rrect(c, -24, -10, 48, 30, 8); c.fill(); c.fillStyle = '#b8c2cc'; ell(c, 0, -10, 26, 8); c.fill(); c.fillStyle = '#d79b52'; ell(c, 0, -10, 21, 5); c.fill(); c.strokeStyle = 'rgba(160,160,160,.8)'; c.lineWidth = 3; c.beginPath(); c.moveTo(-6, -18); c.quadraticCurveTo(-12, -26, -4, -32); c.moveTo(8, -18); c.quadraticCurveTo(2, -26, 10, -32); c.stroke(); c.restore(); },
+  onion(c, x, y, s) { c.save(); c.translate(x, y); c.scale(s, s); [[-10, -6], [8, -8], [0, 6], [-14, 10], [14, 8]].forEach(([a, b]) => { c.fillStyle = '#c8f0c0'; c.strokeStyle = '#3fa046'; c.lineWidth = 3; circ(c, a, b, 8); c.fill(); c.stroke(); }); c.restore(); },
+  pate(c, x, y, s) { c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = '#fff'; ell(c, 0, 4, 28, 16); c.fill(); c.strokeStyle = '#ccc'; c.lineWidth = 2; c.stroke(); c.fillStyle = '#8d5a3b'; ell(c, 0, 0, 22, 10); c.fill(); c.fillStyle = '#a8714f'; ell(c, -5, -3, 8, 3); c.fill(); c.restore(); },
+  chalua(c, x, y, s) { c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = '#f3d3c4'; circ(c, 0, 0, 24); c.fill(); c.strokeStyle = '#8a6a3a'; c.lineWidth = 4; c.stroke(); c.fillStyle = 'rgba(200,150,130,.5)';[[-8, -4], [6, 6], [4, -9]].forEach(([a, b]) => { circ(c, a, b, 2.5); c.fill(); }); c.restore(); },
+};
+const emo = e => (c, x, y, s) => emoji(c, e, x, y, 44 * s);
+
+// ================= Mini-game =================
+// 1. Thái thịt bò
+function mkSliceBeef() {
+  const mx = 170, my = 230, mw = 460, mh = 190, n = 5;
+  const lines = []; for (let i = 1; i <= n; i++) lines.push({ x: mx + mw * i / (n + 1), cut: false, cx: 0, acc: 0 });
+  const marb = []; for (let i = 0; i < 10; i++) marb.push({ x: mx + rand(20, mw - 60), y: my + rand(20, mh - 20), w: rand(40, 110), a: rand(-0.5, 0.5) });
+  let stroke = null, spread = 0;
+  function meat(c) {
+    c.fillStyle = '#c94545'; rrect(c, mx, my, mw, mh, 40); c.fill();
+    c.strokeStyle = 'rgba(255,240,240,.75)'; c.lineCap = 'round';
+    marb.forEach(m => { c.lineWidth = 4; c.beginPath(); c.moveTo(m.x, m.y); c.quadraticCurveTo(m.x + m.w / 2, m.y + m.w * m.a, m.x + m.w, m.y + 6); c.stroke(); });
+    c.fillStyle = 'rgba(255,255,255,.15)'; rrect(c, mx + 20, my + 12, mw - 40, 26, 13); c.fill();
+    c.strokeStyle = '#9e2f2f'; c.lineWidth = 5; rrect(c, mx, my, mw, mh, 40); c.stroke();
+  }
+  return {
+    time: 15, done: false,
+    down(p) { stroke = [p]; },
+    move(p) { if (stroke && pointer.down) stroke.push(p); },
+    up() {
+      if (!stroke) return; const s = stroke; stroke = null;
+      const ys = s.map(q => q.y), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      if (y1 - y0 < mh * 0.55 || y0 > my + mh * 0.35 || y1 < my + mh * 0.65) { if (y1 - y0 > 20) addPop('Vuốt dài hơn!', s[0].x, s[0].y, '#e67e22'); return; }
+      const ax = s.reduce((a, q) => a + q.x, 0) / s.length;
+      let best = null, bd = 1e9;
+      for (const l of lines) if (!l.cut) { const d = Math.abs(l.x - ax); if (d < bd) { bd = d; best = l; } }
+      if (!best || bd > 80) return;
+      best.cut = true; best.cx = ax; best.acc = clamp(1 - bd / 40, 0, 1); Sfx.chop();
+      addPop(best.acc > 0.8 ? 'Đẹp lắm!' : best.acc > 0.45 ? 'Được!' : 'Lệch rồi!', ax, my - 28, best.acc > 0.8 ? '#ff4d79' : best.acc > 0.45 ? '#f39c12' : '#888');
+      addParts(ax, my + mh / 2, '#e57373', 6);
+      if (lines.every(l => l.cut)) this.done = true;
+    },
+    update(dt) { if (this.done) spread = Math.min(1, spread + dt * 3); },
+    draw(c) {
+      drawBoard(c, 110, 170, 580, 320);
+      const edges = [mx, ...lines.filter(l => l.cut).map(l => l.cx).sort((a, b) => a - b), mx + mw];
+      for (let i = 0; i < edges.length - 1; i++) {
+        c.save(); c.translate((i - (edges.length - 2) / 2) * 14 * spread, 0);
+        c.beginPath(); c.rect(edges[i] + 1.5, my - 10, edges[i + 1] - edges[i] - 3, mh + 20); c.clip(); meat(c); c.restore();
+      }
+      c.setLineDash([12, 10]); c.strokeStyle = '#fff59d'; c.lineWidth = 4;
+      lines.forEach(l => { if (!l.cut) { c.beginPath(); c.moveTo(l.x, my - 22); c.lineTo(l.x, my + mh + 22); c.stroke(); } });
+      c.setLineDash([]);
+      if (stroke && stroke.length > 1) { c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); stroke.forEach((q, i) => i ? c.lineTo(q.x, q.y) : c.moveTo(q.x, q.y)); c.stroke(); }
+      if (pointer.down && state === 'play') emoji(c, '🔪', pointer.x + 18, pointer.y - 18, 50);
+    },
+    score() { return lines.reduce((a, l) => a + l.acc, 0) / n * 100; },
+  };
+}
+
+// 2. Hầm xương
+function mkSimmer() {
+  const cx = 330, top = 470; let heat = 0.15, zone = 0.5, t = 0, inZ = 0, tot = 0, ok = false;
+  const bub = [], steam = [];
+  return {
+    time: 12, done: false,
+    update(dt) {
+      t += dt; heat = clamp(heat + (pointer.down ? 0.6 : -0.45) * dt, 0, 1);
+      zone = 0.5 + 0.22 * Math.sin(t * 0.8) + 0.08 * Math.sin(t * 2.1 + 1);
+      tot += dt; ok = Math.abs(heat - zone) < 0.11; if (ok) inZ += dt;
+      if (Math.random() < heat * dt * 30) { const dx = rand(-1, 1) * 125; bub.push({ x: cx + dx, y: 232 + rand(-1, 1) * 20 * Math.sqrt(1 - (dx / 150) ** 2), r: 0, max: rand(5, 13) }); }
+      bub.forEach(b => b.r += dt * 18); for (let i = bub.length - 1; i >= 0; i--) if (bub[i].r > bub[i].max) bub.splice(i, 1);
+      if (Math.random() < (0.3 + heat * 1.5) * dt * 5) steam.push({ x: cx + rand(-100, 100), y: 205, t: 0 });
+      steam.forEach(s => { s.t += dt; s.y -= dt * 45; }); for (let i = steam.length - 1; i >= 0; i--) if (steam[i].t > 2) steam.splice(i, 1);
+    },
+    draw(c) {
+      drawStove(c, cx, top, heat);
+      c.fillStyle = '#6f7880'; rrect(c, cx - 205, 262, 50, 22, 10); c.fill(); rrect(c, cx + 155, 262, 50, 22, 10); c.fill();
+      const g = c.createLinearGradient(cx - 160, 0, cx + 160, 0); g.addColorStop(0, '#7d8792'); g.addColorStop(0.4, '#c5ccd4'); g.addColorStop(1, '#6f7880');
+      c.fillStyle = g; rrect(c, cx - 160, 228, 320, 236, 26); c.fill();
+      c.fillStyle = '#9aa3ad'; ell(c, cx, 228, 165, 32); c.fill();
+      c.save(); ell(c, cx, 232, 150, 25); c.fillStyle = heat > 0.75 ? '#b8743a' : '#c98d4a'; c.fill(); c.clip();
+      c.fillStyle = '#5d3a1a'; star(c, cx - 60, 228, 12, 5, 8, t * 0.3); c.fill(); star(c, cx + 70, 238, 11, 4, 8, -t * 0.2); c.fill();
+      c.fillStyle = '#f0d9b5'; ell(c, cx + 10, 226, 30, 12); c.fill();
+      c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 2; bub.forEach(b => { circ(c, b.x, b.y, b.r); c.stroke(); });
+      c.restore();
+      steam.forEach(s => { c.fillStyle = `rgba(200,200,205,${(1 - s.t / 2) * 0.5})`; circ(c, s.x + Math.sin(s.t * 3 + s.x) * 10, s.y, 14 + s.t * 12); c.fill(); });
+      // thước nhiệt
+      const gx = 640, gy = 110, gw = 52, gh = 340;
+      c.fillStyle = '#fff'; rrect(c, gx - 8, gy - 8, gw + 16, gh + 16, 20); c.fill(); c.strokeStyle = '#ffb3c8'; c.lineWidth = 4; c.stroke();
+      const gg = c.createLinearGradient(0, gy + gh, 0, gy); gg.addColorStop(0, '#9fd3ff'); gg.addColorStop(1, '#ff8a80');
+      c.fillStyle = gg; rrect(c, gx, gy, gw, gh, 14); c.fill();
+      const zy = v => gy + gh * (1 - v);
+      c.fillStyle = 'rgba(46,204,113,.85)'; rrect(c, gx - 4, zy(zone + 0.11), gw + 8, gh * 0.22, 8); c.fill(); c.strokeStyle = '#1e8f4c'; c.lineWidth = 3; c.stroke();
+      const hy = zy(heat);
+      c.fillStyle = '#d94a70'; c.beginPath(); c.moveTo(gx - 26, hy - 13); c.lineTo(gx - 4, hy); c.lineTo(gx - 26, hy + 13); c.fill();
+      c.fillStyle = '#333'; c.fillRect(gx - 4, hy - 2.5, gw + 8, 5);
+      txt(c, 'NÓNG', gx + gw / 2, gy - 22, 16, '#e74c3c'); txt(c, 'NGUỘI', gx + gw / 2, gy + gh + 24, 16, '#2c7be5');
+      if (state === 'play') outlineTxt(c, ok ? 'Lửa vừa!' : heat > zone ? 'Quá sôi!' : 'Lửa nhỏ quá!', cx, 130, 34, ok ? '#27ae60' : heat > zone ? '#e74c3c' : '#2c7be5');
+    },
+    score() { return tot ? inZ / tot * 112 : 0; },
+  };
+}
+
+// 3. Vớt bọt
+function mkSkim() {
+  const cx = 400, cy = 335, R = 200; let foams = [], sp = 0.4, spawned = 0, caught = 0, t = 0;
+  const FO = [[0, 0, 1], [-0.6, -0.3, 0.6], [0.6, -0.2, 0.65], [-0.3, 0.5, 0.55], [0.45, 0.45, 0.5]];
+  return {
+    time: 14, done: false,
+    update(dt) {
+      t += dt; sp -= dt;
+      if (sp <= 0 && timeLeft > 1.2) { sp = rand(0.4, 0.75); const a = rand(0, 7), r = Math.sqrt(Math.random()) * (R - 55); foams.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r, age: 0, life: rand(2.2, 2.8), r: rand(24, 34) }); spawned++; }
+      foams.forEach(f => f.age += dt);
+      foams = foams.filter(f => { if (f.age >= f.life) { addPop('Hụt!', f.x, f.y, '#999'); return false; } return true; });
+    },
+    down(p) {
+      for (let i = foams.length - 1; i >= 0; i--) {
+        const f = foams[i];
+        if (Math.hypot(p.x - f.x, p.y - f.y) < f.r + 18) { foams.splice(i, 1); caught++; Sfx.pop(); addParts(f.x, f.y, '#f5ecd5', 8, 120); addPop('+1', f.x, f.y - 10); return; }
+      }
+    },
+    draw(c) {
+      c.fillStyle = 'rgba(0,0,0,.15)'; circ(c, cx + 8, cy + 14, R + 24); c.fill();
+      c.fillStyle = '#8d99a6'; circ(c, cx, cy, R + 24); c.fill();
+      c.fillStyle = '#b8c2cc'; circ(c, cx, cy, R + 12); c.fill();
+      const g = c.createRadialGradient(cx - 40, cy - 40, 20, cx, cy, R); g.addColorStop(0, '#dfa962'); g.addColorStop(1, '#a8692e');
+      c.fillStyle = g; circ(c, cx, cy, R); c.fill();
+      for (let i = 0; i < 4; i++) { const a = i * 1.6 + t * 0.15, r = 70 + i * 25, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r; if (i % 2) { c.fillStyle = '#5d3a1a'; star(c, x, y, 16, 6, 8, a); c.fill(); } else { c.fillStyle = '#6b4226'; ell(c, x, y, 26, 18, a); c.fill(); c.fillStyle = '#e8cfa5'; ell(c, x, y, 18, 12, a); c.fill(); } }
+      c.fillStyle = 'rgba(255,220,140,.4)'; for (let i = 0; i < 8; i++) { circ(c, cx + (sr(i) - 0.5) * 300, cy + (sr(i + 9) - 0.5) * 300, 7); c.fill(); }
+      foams.forEach(f => {
+        const sc = Math.min(1, f.age * 5); if (f.life - f.age < 0.7 && Math.floor(f.age * 12) % 2) return;
+        FO.forEach(([dx, dy, k]) => { c.fillStyle = '#f3e8cf'; circ(c, f.x + dx * f.r * sc, f.y + dy * f.r * sc, f.r * k * 0.7 * sc); c.fill(); c.strokeStyle = '#d6c4a0'; c.lineWidth = 2; c.stroke(); });
+      });
+      if (state === 'play') { c.strokeStyle = '#c0c8d0'; c.lineWidth = 8; c.lineCap = 'round'; c.beginPath(); c.moveTo(pointer.x + 20, pointer.y + 20); c.lineTo(pointer.x + 85, pointer.y + 85); c.stroke(); c.fillStyle = 'rgba(210,220,230,.45)'; circ(c, pointer.x, pointer.y, 26); c.fill(); c.lineWidth = 5; c.stroke(); }
+      outlineTxt(c, `Đã vớt: ${caught}`, 700, 110, 26, '#d94a70');
+    },
+    score() { return spawned ? caught / spawned * 100 : 100; },
+  };
+}
+
+// Kéo thả nguyên liệu (dùng cho phở & bánh mì)
+function mkDrag(cfg) {
+  const n = cfg.items.length, slots = shuffle([...Array(n).keys()]);
+  const items = cfg.items.map((it, i) => { const hx = 70 + 660 * (slots[i] + 0.5) / n, hy = 515; return { ...it, hx, hy, x: hx, y: hy, placed: false }; });
+  let drag = null, next = 0, mistakes = 0, shake = 0;
+  function drawItem(c, it, s, label) {
+    c.fillStyle = 'rgba(0,0,0,.12)'; circ(c, it.x + 3, it.y + 5, 38 * s); c.fill();
+    c.fillStyle = '#fff'; circ(c, it.x, it.y, 38 * s); c.fill(); c.strokeStyle = '#f0d0b0'; c.lineWidth = 3; c.stroke();
+    it.icon(c, it.x, it.y, s);
+    if (label) txt(c, it.name, it.x, it.y + 52, 15, '#5a3420');
+  }
+  return {
+    time: cfg.time, done: false,
+    down(p) { for (const it of items) if (!it.placed && Math.hypot(p.x - it.x, p.y - it.y) < 48) { drag = it; Sfx.tone(520, 0.05, 'sine', 0.12); return; } },
+    move(p) { if (drag) { drag.x = p.x; drag.y = p.y; } },
+    up() {
+      if (!drag) return; const it = drag, t = cfg.target; drag = null;
+      if (((it.x - t.x) / t.rx) ** 2 + ((it.y - t.y) / t.ry) ** 2 < 1) {
+        if (it === items[next]) { it.placed = true; next++; Sfx.good(); addPop(rnd(['Tuyệt!', 'Đúng rồi!', 'Ngon!']), t.x, t.y - t.ry); addParts(t.x, t.y - 20, '#ffd23f', 12); if (next >= n) this.done = true; }
+        else { mistakes++; shake = 0.4; Sfx.bad(); addPop('Chưa đến lượt!', it.x, it.y - 40, '#e74c3c'); }
+      }
+    },
+    update(dt) { shake = Math.max(0, shake - dt); for (const it of items) if (!it.placed && it !== drag) { const k = Math.min(1, dt * 10); it.x = lerp(it.x, it.hx, k); it.y = lerp(it.y, it.hy, k); } },
+    draw(c) {
+      c.fillStyle = 'rgba(255,255,255,.88)'; rrect(c, 14, 84, 200, 44 + n * 34, 16); c.fill(); c.strokeStyle = '#ffb3c8'; c.lineWidth = 3; c.stroke();
+      txt(c, 'Thứ tự', 114, 106, 20, '#d94a70', 'center', '900');
+      items.forEach((it, i) => txt(c, (i < next ? '✔ ' : i === next ? '▶ ' : '• ') + it.name, 30, 138 + i * 34, 18, i < next ? '#3aa655' : i === next ? '#d94a70' : '#9b8579', 'left', i === next ? '900' : '700'));
+      c.save(); if (shake) c.translate(Math.sin(T * 60) * 7 * shake / 0.4, 0); cfg.drawBase(c, next); c.restore();
+      c.fillStyle = '#c98f55'; rrect(c, 40, 462, 720, 122, 24); c.fill(); c.fillStyle = '#efc58f'; rrect(c, 50, 470, 700, 106, 20); c.fill();
+      items.forEach(it => { if (!it.placed && it !== drag) drawItem(c, it, 1, true); });
+      if (drag) drawItem(c, drag, 1.25, false);
+    },
+    score() { return clamp(100 - mistakes * 15 - (n - next) * (100 / n), 0, 100); },
+  };
+}
+
+// 5. Thái dưa chuột & cà rốt
+function mkSliceVeg() {
+  const vx = 150, vw = 500, vy = 360;
+  const rounds = [{ k: 'cuc', sp: 130 }, { k: 'car', sp: 175 }];
+  rounds.forEach(r => { r.marks = []; for (let i = 0; i < 6; i++) r.marks.push({ x: vx + 60 + i * (vw - 120) / 5, st: 0, acc: 0 }); r.cuts = []; });
+  const all = rounds.flatMap(r => r.marks);
+  let ri = 0, kx = vx - 50, pause = 0, chop = 0, extra = 0;
+  return {
+    time: 16, done: false,
+    down() {
+      if (pause > 0 || this.done) return; const R = rounds[ri];
+      chop = 0.12; Sfx.chop(); R.cuts.push(kx);
+      let best = null, bd = 1e9; for (const m of R.marks) if (m.st === 0) { const d = Math.abs(m.x - kx); if (d < bd) { bd = d; best = m; } }
+      if (best && bd < 38) { best.st = 1; best.acc = clamp(1 - bd / 30, 0, 1); addPop(best.acc > 0.75 ? 'Chuẩn!' : 'Được', best.x, vy - 120, best.acc > 0.75 ? '#ff4d79' : '#f39c12'); addParts(kx, vy, R.k === 'cuc' ? '#a5d6a7' : '#ffb74d', 5); }
+      else { extra++; addPop('Trượt!', kx, vy - 120, '#999'); }
+    },
+    update(dt) {
+      chop = Math.max(0, chop - dt); if (this.done) return;
+      if (pause > 0) { pause -= dt; if (pause <= 0) { ri++; kx = vx - 50; } return; }
+      kx += rounds[ri].sp * dt;
+      for (const m of rounds[ri].marks) if (m.st === 0 && kx > m.x + 38) { m.st = 2; addPop('Lỡ!', m.x, vy - 120, '#999'); }
+      if (kx > vx + vw + 50) { if (ri < rounds.length - 1) pause = 0.7; else this.done = true; }
+    },
+    draw(c) {
+      drawBoard(c, 100, 250, 600, 230);
+      const R = rounds[ri];
+      if (R.k === 'cuc') {
+        c.fillStyle = '#3f9a3f'; rrect(c, vx, vy - 34, vw, 68, 34); c.fill();
+        c.strokeStyle = '#6cc46c'; c.lineWidth = 5; for (let i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(vx + 30, vy + i * 16); c.lineTo(vx + vw - 30, vy + i * 16); c.stroke(); }
+        c.fillStyle = '#2e7d32'; for (let i = 0; i < 14; i++) { circ(c, vx + 30 + i * 34, vy + (i % 2 ? -22 : 22), 3); c.fill(); }
+      } else {
+        c.fillStyle = '#4caf50';[[-0.5, -30], [0, -40], [0.5, -30]].forEach(([a]) => { c.save(); c.translate(vx, vy); c.rotate(Math.PI + a); c.beginPath(); c.moveTo(0, -8); c.lineTo(60, 0); c.lineTo(0, 8); c.fill(); c.restore(); });
+        c.fillStyle = '#ff8a1f'; c.beginPath(); c.moveTo(vx, vy - 38); c.lineTo(vx + vw, vy - 10); c.quadraticCurveTo(vx + vw + 16, vy, vx + vw, vy + 10); c.lineTo(vx, vy + 38); c.quadraticCurveTo(vx - 14, vy, vx, vy - 38); c.fill();
+        c.strokeStyle = '#d96a00'; c.lineWidth = 3; for (let i = 1; i < 9; i++) { const xx = vx + i * 55, hh = 30 - i * 2.6; c.beginPath(); c.moveTo(xx, vy - hh * 0.6); c.lineTo(xx + 10, vy - hh * 0.2); c.stroke(); }
+      }
+      c.strokeStyle = R.k === 'cuc' ? '#d8f5c8' : '#ffe0b2'; c.lineWidth = 3;
+      R.cuts.forEach(x => { if (x > vx && x < vx + vw) { c.beginPath(); c.moveTo(x, vy - 40); c.lineTo(x, vy + 40); c.stroke(); } });
+      R.marks.forEach(m => {
+        c.fillStyle = m.st === 0 ? '#ffd23f' : m.st === 1 ? '#2ecc71' : '#e74c3c';
+        c.beginPath(); c.moveTo(m.x - 12, vy - 74); c.lineTo(m.x + 12, vy - 74); c.lineTo(m.x, vy - 56); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke();
+      });
+      if (pause <= 0 && !this.done) {
+        const bot = chop > 0 ? vy + 40 : vy - 52;
+        c.fillStyle = 'rgba(0,0,0,.15)'; c.fillRect(kx - 3, bot - 100, 12, 104);
+        c.fillStyle = '#d5dde2'; c.beginPath(); c.moveTo(kx - 7, bot - 110); c.lineTo(kx + 7, bot - 110); c.lineTo(kx + 7, bot); c.lineTo(kx - 7, bot - 14); c.closePath(); c.fill();
+        c.strokeStyle = '#90a4ae'; c.lineWidth = 2; c.stroke();
+        c.fillStyle = '#6d4c41'; rrect(c, kx - 10, bot - 175, 20, 66, 8); c.fill();
+      }
+      if (pause > 0) outlineTxt(c, 'Tiếp theo: cà rốt!', W / 2, 200, 34, '#ff8a1f');
+    },
+    score() { return clamp(all.reduce((a, m) => a + m.acc, 0) / all.length * 100 - extra * 4, 0, 100); },
+  };
+}
+
+// 6. Chiên trứng
+function mkEgg() {
+  const cx = 400, cy = 320, pts = [];
+  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, r = rand(80, 100); pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.9]); }
+  let ph = 'crack', cook = 0, c1 = 0, drop = 0, flip = 0; const acc = [];
+  function side1(c, v) {
+    blob(c, pts); c.fillStyle = `rgba(255,255,255,${0.35 + 0.65 * clamp(v / 0.7, 0, 1)})`; c.fill();
+    const e = clamp((v - 0.6) * 1.6, 0, 0.95); if (e > 0) { c.strokeStyle = `rgba(175,105,35,${e})`; c.lineWidth = 12; c.stroke(); }
+    if (v > 1.2) { c.fillStyle = `rgba(70,35,10,${clamp((v - 1.2) * 1.2, 0, 0.8)})`; c.fill(); }
+    const g = c.createRadialGradient(cx + 2, cy - 14, 4, cx + 8, cy - 6, 36); g.addColorStop(0, '#fff2a8'); g.addColorStop(0.3, '#ffc21a'); g.addColorStop(1, '#f39c12');
+    c.fillStyle = g; circ(c, cx + 8, cy - 6, 34); c.fill();
+  }
+  function side2(c, v) {
+    blob(c, pts); c.fillStyle = cookColor(c1 * 0.95); c.fill();
+    const e = clamp((v - 0.6) * 1.6, 0, 0.95); if (e > 0) { c.strokeStyle = `rgba(175,105,35,${e})`; c.lineWidth = 12; c.stroke(); }
+    c.fillStyle = 'rgba(255,255,255,.25)'; circ(c, cx - 8, cy - 6, 36); c.fill();
+  }
+  return {
+    time: 22, done: false,
+    rate(v) { const a = clamp(1 - Math.abs(v - 1) / 0.4, 0, 1); acc.push(a); addPop(a > 0.8 ? 'Hoàn hảo!' : a > 0.45 ? 'Tốt!' : (v < 1 ? 'Còn sống!' : 'Cháy rồi!'), cx, cy - 150, a > 0.8 ? '#ff4d79' : a > 0.45 ? '#f39c12' : '#888'); },
+    down() {
+      if (ph === 'crack') { ph = 'drop'; drop = 0; Sfx.chop(); Sfx.sizzleStart(); }
+      else if (ph === 'side1') { c1 = cook; this.rate(cook); ph = 'flip'; flip = 0; Sfx.tone(400, 0.2, 'triangle', 0.15, 2); }
+      else if (ph === 'side2') { this.rate(cook); ph = 'end'; this.done = true; Sfx.sizzleStop(); }
+    },
+    update(dt) {
+      if (ph === 'drop') { drop += dt * 3; if (drop >= 1) { ph = 'side1'; cook = 0; } }
+      else if (ph === 'side1' || ph === 'side2') { cook += dt * (ph === 'side1' ? 0.2 : 0.26); if (cook > 1.75) this.down(); }
+      else if (ph === 'flip') { flip += dt * 2.5; if (flip >= 1) { ph = 'side2'; cook = 0; } }
+    },
+    draw(c) {
+      c.fillStyle = '#6d4c41'; rrect(c, cx + 150, cy - 16, 240, 32, 14); c.fill();
+      c.fillStyle = 'rgba(0,0,0,.15)'; circ(c, cx + 8, cy + 14, 182); c.fill();
+      c.fillStyle = '#37474f'; circ(c, cx, cy, 182); c.fill();
+      c.fillStyle = '#263238'; circ(c, cx, cy, 160); c.fill();
+      c.strokeStyle = 'rgba(255,255,255,.08)'; c.lineWidth = 10; c.beginPath(); c.arc(cx, cy, 130, 3.6, 4.6); c.stroke();
+      if (ph === 'crack') { emoji(c, '🥚', cx, cy - 30 + Math.sin(T * 4) * 8, 90); if (state === 'play') outlineTxt(c, 'Chạm để đập trứng!', cx, cy + 110, 30, '#d94a70'); }
+      else if (ph === 'drop') { c.save(); c.translate(cx, cy); c.scale(0.3 + 0.7 * drop, 0.3 + 0.7 * drop); c.translate(-cx, -cy); side1(c, 0); c.restore(); }
+      else if (ph === 'flip') { c.save(); c.translate(cx, cy - Math.sin(flip * Math.PI) * 90); c.scale(1, Math.abs(Math.cos(flip * Math.PI)) + 0.02); c.translate(-cx, -cy); flip < 0.5 ? side1(c, c1) : side2(c, 0); c.restore(); }
+      else if (ph === 'side1') side1(c, cook);
+      else side2(c, cook);
+      if (ph === 'side1' || ph === 'side2' || ph === 'end') {
+        drawCookGauge(c, cook, 200, 535, 400);
+        if (ph !== 'end' && state === 'play') outlineTxt(c, ph === 'side1' ? 'Chạm để LẬT!' : 'Chạm để BÀY RA ĐĨA!', cx, 108, 28, '#d94a70');
+      }
+    },
+    score() { return acc.reduce((a, b) => a + b, 0) / 2 * 100; },
+  };
+}
+
+// 8. Băm thịt
+function mkMince() {
+  const pieces = [{ x: 330, y: 340, s: 58 }, { x: 460, y: 320, s: 54 }, { x: 400, y: 410, s: 50 }].map(p => ({ ...p, r: rand(-0.5, 0.5) }));
+  let taps = 0, chop = 0, kx = 400; const target = 40;
+  return {
+    time: 8, done: false,
+    down(p) {
+      taps++; chop = 0.09; kx = clamp(p.x, 240, 560); Sfx.chop();
+      let bi = 0; pieces.forEach((q, i) => { if (q.s > pieces[bi].s) bi = i; }); const q = pieces[bi];
+      if (q.s > 7) { const ns = q.s * 0.74; pieces.splice(bi, 1, { x: q.x - ns * 0.5 + rand(-6, 6), y: q.y + rand(-10, 10), s: ns, r: rand(-1, 1) }, { x: q.x + ns * 0.5 + rand(-6, 6), y: q.y + rand(-10, 10), s: ns, r: rand(-1, 1) }); }
+      pieces.forEach(q => { q.x = clamp(lerp(q.x, 400, 0.03), 200, 600); q.y = clamp(lerp(q.y, 360, 0.03), 230, 460); });
+      addParts(kx, 380, '#e57373', 4, 120);
+      if (taps >= target) this.done = true;
+    },
+    update(dt) { chop = Math.max(0, chop - dt); },
+    draw(c) {
+      drawBoard(c, 150, 190, 500, 310);
+      pieces.forEach((q, i) => { c.fillStyle = i % 2 ? '#d35454' : '#e06666'; ell(c, q.x, q.y, q.s, q.s * 0.7, q.r); c.fill(); if (q.s > 25) { c.strokeStyle = 'rgba(255,240,240,.8)'; c.lineWidth = 4; c.beginPath(); c.moveTo(q.x - q.s * 0.5, q.y); c.quadraticCurveTo(q.x, q.y - q.s * 0.3, q.x + q.s * 0.5, q.y + 4); c.stroke(); } });
+      const bot = chop > 0 ? 400 : 250;
+      c.fillStyle = '#cfd8dc'; rrect(c, kx - 80, bot - 90, 160, 90, 10); c.fill(); c.strokeStyle = '#90a4ae'; c.lineWidth = 3; c.stroke();
+      c.fillStyle = '#eceff1'; c.fillRect(kx - 78, bot - 10, 156, 8);
+      c.fillStyle = '#90a4ae'; circ(c, kx - 55, bot - 68, 9); c.fill();
+      c.fillStyle = '#6d4c41'; rrect(c, kx + 80, bot - 80, 90, 24, 10); c.fill();
+      const f = Math.min(1, taps / target);
+      c.fillStyle = '#fff'; rrect(c, 682, 120, 56, 340, 18); c.fill(); c.strokeStyle = '#ffb3c8'; c.lineWidth = 4; c.stroke();
+      c.fillStyle = '#ff6f91'; rrect(c, 690, 128 + 324 * (1 - f), 40, 324 * f, 12); if (f > 0) c.fill();
+      txt(c, 'Độ nhuyễn', 710, 100, 17, '#d94a70', 'center', '900');
+      if (state === 'play' && Math.floor(T * 4) % 2) outlineTxt(c, 'Chạm thật nhanh!', 400, 140, 32, '#d94a70');
+    },
+    score() { return Math.min(1, taps / target) * 100; },
+  };
+}
+
+// 9. Trộn nhân
+function mkMix() {
+  const cx = 400, cy = 330, R = 185;
+  const groups = [['#e57373', 40, 'blob'], ['#fffaf0', 26, 'line'], ['#ff9f43', 24, 'bit'], ['#4e342e', 18, 'bit'], ['#66bb6a', 12, 'bit']];
+  const ps = [];
+  groups.forEach(([col, n, k], g) => {
+    const ga = g / groups.length * Math.PI * 2;
+    for (let i = 0; i < n; i++) { const a = ga + rand(-0.5, 0.5), r = rand(35, 135), ma = rand(0, 7), mr = Math.sqrt(Math.random()) * 145; ps.push({ col, k, hx: Math.cos(a) * r, hy: Math.sin(a) * r, mx: Math.cos(ma) * mr, my: Math.sin(ma) * mr, rot: rand(0, 7) }); }
+  });
+  let total = 0, last = null, rot = 0, sx = cx + 120, sy = cy - 40; const target = Math.PI * 2 * 7;
+  return {
+    time: 12, done: false,
+    move(p) {
+      if (!pointer.down) return; sx = p.x; sy = p.y;
+      const d0 = Math.hypot(p.x - cx, p.y - cy); if (d0 > R + 80 || d0 < 15) { last = null; return; }
+      const a = Math.atan2(p.y - cy, p.x - cx);
+      if (last !== null) {
+        let d = a - last; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+        if (Math.abs(d) < 1.2) { const before = Math.floor(total / Math.PI); total += Math.abs(d); rot += d * 0.35; if (Math.floor(total / Math.PI) > before) Sfx.tone(260 + Math.random() * 80, 0.06, 'sine', 0.1); }
+      }
+      last = a; if (total >= target) this.done = true;
+    },
+    down(p) { last = null; this.move(p); },
+    up() { last = null; },
+    update() { },
+    draw(c) {
+      c.fillStyle = 'rgba(0,0,0,.13)'; circ(c, cx + 8, cy + 14, R + 20); c.fill();
+      c.fillStyle = '#e3f2fd'; circ(c, cx, cy, R + 20); c.fill(); c.strokeStyle = '#64b5f6'; c.lineWidth = 6; c.stroke();
+      c.fillStyle = '#64b5f6'; for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; circ(c, cx + Math.cos(a) * (R + 10), cy + Math.sin(a) * (R + 10), 3); c.fill(); }
+      c.fillStyle = '#fafafa'; circ(c, cx, cy, R); c.fill();
+      const pr = Math.min(1, total / target), cs = Math.cos(rot), sn = Math.sin(rot);
+      ps.forEach(q => {
+        const x = lerp(q.hx, q.mx, pr), y = lerp(q.hy, q.my, pr), X = cx + x * cs - y * sn, Y = cy + x * sn + y * cs;
+        c.fillStyle = q.col; c.strokeStyle = q.col;
+        if (q.k === 'blob') { ell(c, X, Y, 10, 7, q.rot); c.fill(); }
+        else if (q.k === 'line') { c.save(); c.strokeStyle = '#d6cfbd'; c.lineWidth = 5; c.lineCap = 'round'; const a = q.rot + rot; c.beginPath(); c.moveTo(X - Math.cos(a) * 10, Y - Math.sin(a) * 10); c.lineTo(X + Math.cos(a) * 10, Y + Math.sin(a) * 10); c.stroke(); c.strokeStyle = q.col; c.lineWidth = 3; c.stroke(); c.restore(); }
+        else { c.save(); c.translate(X, Y); c.rotate(q.rot + rot); c.fillRect(-4, -4, 8, 8); c.restore(); }
+      });
+      if (pr < 0.15 && state === 'play') {
+        c.globalAlpha = 0.5 + 0.3 * Math.sin(T * 5); c.setLineDash([14, 10]); c.strokeStyle = '#ff6f91'; c.lineWidth = 6;
+        c.beginPath(); c.arc(cx, cy, 110, 0, Math.PI * 1.7); c.stroke(); c.setLineDash([]);
+        const ea = Math.PI * 1.7, ex = cx + Math.cos(ea) * 110, ey = cy + Math.sin(ea) * 110;
+        c.fillStyle = '#ff6f91'; c.save(); c.translate(ex, ey); c.rotate(ea + Math.PI / 2); c.beginPath(); c.moveTo(-14, -10); c.lineTo(14, -10); c.lineTo(0, 14); c.closePath(); c.fill(); c.restore();
+        c.globalAlpha = 1;
+      }
+      const spx = pointer.down && state === 'play' ? sx : cx + 120, spy = pointer.down && state === 'play' ? sy : cy - 40;
+      c.strokeStyle = '#a0703c'; c.lineWidth = 10; c.lineCap = 'round'; c.beginPath(); c.moveTo(spx + 16, spy - 12); c.lineTo(spx + 110, spy - 90); c.stroke();
+      c.fillStyle = '#c8955c'; ell(c, spx, spy, 24, 15, -0.7); c.fill();
+      drawBar(c, 'Độ trộn đều', pr, 545);
+    },
+    score() { return Math.min(1, total / target) * 100; },
+  };
+}
+function drawBar(c, label, f, y) {
+  txt(c, label, 190, y + 12, 18, '#5a3420', 'right', '900');
+  c.fillStyle = '#fff'; rrect(c, 200, y, 400, 24, 12); c.fill(); c.strokeStyle = '#ffb3c8'; c.lineWidth = 3; c.stroke();
+  if (f > 0) { c.fillStyle = '#ff6f91'; rrect(c, 200, y, Math.max(24, 400 * f), 24, 12); c.fill(); }
+}
+
+// 10. Cuốn chả giò
+function drawRollStage(c, cx, cy, st) {
+  const P = '#f8edd3', P2 = '#efdfb8', E = '#d9c08c';
+  c.lineWidth = 3; c.strokeStyle = E;
+  if (st < 5) {
+    c.save(); c.beginPath();
+    const bottom = st === 0 ? cy + 160 : st < 4 ? cy + 30 : cy - 10, left = st >= 2 ? cx - 105 : cx - 160, right = st >= 3 ? cx + 105 : cx + 160;
+    c.rect(left, cy - 160, right - left, bottom - (cy - 160)); c.clip();
+    c.fillStyle = P; circ(c, cx, cy, 150); c.fill(); c.stroke();
+    c.strokeStyle = 'rgba(200,170,110,.25)'; c.lineWidth = 1.5;
+    for (let i = -140; i <= 140; i += 14) { c.beginPath(); c.moveTo(cx + i, cy - 150); c.lineTo(cx + i, cy + 150); c.stroke(); c.beginPath(); c.moveTo(cx - 150, cy + i); c.lineTo(cx + 150, cy + i); c.stroke(); }
+    if (st === 0) { c.fillStyle = '#e8a07a'; ell(c, cx, cy + 55, 105, 28); c.fill(); c.fillStyle = '#ff9f43';[[-60, 50], [-10, 62], [40, 48], [75, 60]].forEach(([a, b]) => { c.fillRect(cx + a, cy + b, 7, 7); }); c.fillStyle = '#4e342e';[[-35, 58], [15, 50], [60, 64]].forEach(([a, b]) => { c.fillRect(cx + a, cy + b, 6, 6); }); }
+    c.restore();
+  }
+  c.lineWidth = 3; c.strokeStyle = E;
+  if (st >= 1 && st < 4) { c.fillStyle = P2; rrect(c, cx - 118, cy, 236, 74, 28); c.fill(); c.stroke(); c.fillStyle = 'rgba(232,160,122,.4)'; ell(c, cx, cy + 37, 100, 22); c.fill(); }
+  if (st >= 2 && st < 4) { c.fillStyle = P2; rrect(c, cx - 122, cy - 70, 50, 148, 22); c.fill(); c.stroke(); }
+  if (st >= 3 && st < 4) { c.fillStyle = P2; rrect(c, cx + 72, cy - 70, 50, 148, 22); c.fill(); c.stroke(); }
+  if (st === 4) { c.fillStyle = P2; rrect(c, cx - 120, cy - 25, 240, 76, 36); c.fill(); c.stroke(); c.fillStyle = 'rgba(232,160,122,.35)'; ell(c, cx, cy + 12, 104, 22); c.fill(); }
+  if (st === 5) { c.fillStyle = P2; rrect(c, cx - 125, cy - 38, 250, 76, 38); c.fill(); c.stroke(); c.fillStyle = 'rgba(232,160,122,.3)'; ell(c, cx, cy, 110, 24); c.fill(); c.strokeStyle = E; c.beginPath(); c.moveTo(cx - 90, cy + 30); c.lineTo(cx + 90, cy + 30); c.stroke(); }
+}
+function mkRoll() {
+  const cx = 400, cy = 320;
+  const seq = [['up', 'Gấp mép dưới lên'], ['right', 'Gấp mép trái vào'], ['left', 'Gấp mép phải vào'], ['up', 'Cuộn lên'], ['up', 'Cuộn thật chặt!']];
+  let idx = 0, mist = 0, start = null, shake = 0;
+  return {
+    time: 12, done: false,
+    down(p) { start = p; },
+    up(p) {
+      if (!start || this.done) return; const dx = p.x - start.x, dy = p.y - start.y; start = null;
+      if (Math.hypot(dx, dy) < 40) return;
+      const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+      if (dir === seq[idx][0]) { idx++; Sfx.good(); addPop(idx >= seq.length ? 'Đẹp quá!' : 'Tốt!', cx, cy - 175); if (idx >= seq.length) this.done = true; }
+      else { mist++; shake = 0.4; Sfx.bad(); addPop('Sai hướng!', cx, cy - 175, '#e74c3c'); }
+    },
+    update(dt) { shake = Math.max(0, shake - dt); },
+    draw(c) {
+      c.fillStyle = 'rgba(0,0,0,.12)'; rrect(c, 166, 140, 480, 380, 20); c.fill();
+      c.fillStyle = '#d7b56d'; rrect(c, 160, 130, 480, 380, 20); c.fill();
+      c.strokeStyle = 'rgba(140,100,40,.35)'; c.lineWidth = 2; for (let x = 176; x < 640; x += 16) { c.beginPath(); c.moveTo(x, 136); c.lineTo(x, 504); c.stroke(); }
+      c.save(); if (shake) c.translate(Math.sin(T * 60) * 8 * shake / 0.4, 0); drawRollStage(c, cx, cy, idx); c.restore();
+      if (!this.done && state !== 'ending') { drawArrow(c, cx, cy, seq[idx][0], 150); outlineTxt(c, seq[idx][1], cx, 548, 30, '#d94a70'); }
+    },
+    score() { return clamp(idx / seq.length * 100 - mist * 15, 0, 100); },
+  };
+}
+
+// 11. Chiên chả giò
+function mkFry() {
+  const cx = 360, cy = 350, plx = 690, ply = 350;
+  const rolls = [[270, 300, -0.1], [450, 290, 0.12], [265, 410, 0.08], [455, 405, -0.12]].map(([x, y, a]) => ({ x, y, a, cook: 0, rate: rand(0.11, 0.19), up: false, acc: 0, fly: 0, px: 0, py: 0 }));
+  let landed = 0, started = false;
+  const accOf = v => clamp(1 - Math.abs(v - 1) / 0.45, 0, 1);
+  return {
+    time: 20, done: false,
+    down(p) {
+      for (const r of rolls) if (!r.up && Math.abs(p.x - r.x) < 80 && Math.abs(p.y - r.y) < 42) {
+        r.up = true; r.acc = accOf(r.cook); r.px = plx; r.py = ply - 45 + landed * 30; landed++; Sfx.pop();
+        addPop(r.acc > 0.8 ? 'Vàng giòn!' : r.cook < 1 ? 'Còn sống!' : r.acc > 0.4 ? 'Hơi cháy' : 'Cháy rồi!', r.x, r.y - 55, r.acc > 0.8 ? '#ff4d79' : r.acc > 0.4 ? '#f39c12' : '#888');
+        if (rolls.every(q => q.up)) { this.done = true; Sfx.sizzleStop(); }
+        return;
+      }
+    },
+    update(dt) {
+      if (!started) { started = true; Sfx.sizzleStart(); }
+      for (const r of rolls) { if (!r.up) r.cook += r.rate * dt; else r.fly = Math.min(1, r.fly + dt * 3); }
+    },
+    draw(c) {
+      c.fillStyle = '#3e3e3e'; rrect(c, cx - 300, cy - 18, 40, 36, 12); c.fill(); rrect(c, cx + 260, cy - 18, 40, 36, 12); c.fill();
+      c.fillStyle = 'rgba(0,0,0,.15)'; ell(c, cx + 8, cy + 14, 262, 182); c.fill();
+      c.fillStyle = '#3e3e3e'; ell(c, cx, cy, 262, 182); c.fill();
+      const g = c.createRadialGradient(cx - 60, cy - 50, 20, cx, cy, 240); g.addColorStop(0, '#f6cf6a'); g.addColorStop(1, '#c98a1e');
+      c.fillStyle = g; ell(c, cx, cy, 238, 160); c.fill();
+      c.fillStyle = 'rgba(0,0,0,.12)'; ell(c, plx + 5, ply + 10, 95, 75); c.fill();
+      c.fillStyle = '#fff'; ell(c, plx, ply, 95, 75); c.fill(); c.strokeStyle = '#e0c9a6'; c.lineWidth = 5; c.stroke();
+      c.fillStyle = '#7cc576'; ell(c, plx - 20, ply - 10, 50, 28, -0.4); c.fill(); ell(c, plx + 22, ply + 14, 46, 24, 0.3); c.fill();
+      rolls.forEach(r => {
+        if (r.up) return;
+        c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 2;
+        for (let k = 0; k < 8; k++) { const a = k * 0.8 + T * 2 + r.x, ph = (T * 1.3 + k * 0.37) % 1; circ(c, r.x + Math.cos(a) * 80, r.y + Math.sin(a) * 32, 2 + ph * 5); c.stroke(); }
+        drawChaGio(c, r.x, r.y, 120, cookColor(r.cook), r.a);
+        drawCookGauge(c, r.cook, r.x - 45, r.y - 46, 90, 9, false);
+      });
+      rolls.forEach(r => {
+        if (!r.up) return; const f = r.fly, x = lerp(r.x, r.px, f), y = lerp(r.y, r.py, f) - Math.sin(f * Math.PI) * 120;
+        drawChaGio(c, x, y, 120 - 15 * f, cookColor(r.cook), lerp(r.a, 0.08, f));
+      });
+      if (state === 'play' && T % 2 < 1.3) outlineTxt(c, 'Vớt ra khi vàng giòn!', cx, 140, 28, '#d94a70');
+    },
+    score() { return rolls.reduce((a, r) => a + (r.up ? r.acc : accOf(r.cook)), 0) / rolls.length * 100; },
+  };
+}
+
+// ================= Công thức =================
+const RECIPES = {
+  pho: {
+    name: 'Phở bò', desc: 'Nước dùng thơm, bánh phở mềm', thumb: [120, 62, 0.55], final: [300, 150, 1.1], dish: dishPho,
+    steps: [
+      { name: 'Thái thịt bò', short: 'Vuốt dọc theo từng đường chấm vàng để thái thịt', hint: 'Vuốt từ trên xuống dưới theo từng đường chấm vàng. Càng sát đường càng được nhiều điểm!', make: mkSliceBeef },
+      { name: 'Hầm xương', short: 'Giữ để tăng lửa, thả để giảm – giữ kim trong vùng xanh', hint: 'Nhấn giữ để tăng lửa, thả ra để lửa nhỏ lại. Giữ kim nhiệt độ luôn nằm trong vùng xanh nhé!', make: mkSimmer },
+      { name: 'Vớt bọt', short: 'Chạm vào bọt để vớt cho nước dùng trong', hint: 'Nước dùng phở phải thật trong! Chạm thật nhanh vào bọt trước khi nó tan vào nồi.', make: mkSkim },
+      {
+        name: 'Bày tô phở', short: 'Kéo nguyên liệu vào tô theo đúng thứ tự', hint: 'Kéo từng nguyên liệu vào tô theo thứ tự ở bảng bên trái. Sai thứ tự là bị trừ điểm đấy!',
+        make: () => mkDrag({
+          time: 20, target: { x: 450, y: 290, rx: 215, ry: 145 }, drawBase: (c, n) => drawPhoBowl(c, 450, 290, 1, n),
+          items: [{ name: 'Bánh phở', icon: ICON.noodle }, { name: 'Thịt bò', icon: ICON.beef }, { name: 'Nước dùng', icon: ICON.broth }, { name: 'Hành lá', icon: ICON.onion }, { name: 'Rau thơm', icon: emo('🌿') }],
+        })
+      },
+    ],
+  },
+  banhmi: {
+    name: 'Bánh mì', desc: 'Giòn rụm, nhân đầy ắp', thumb: [120, 82, 0.46], final: [300, 175, 1.15], dish: (c, x, y, s) => drawBanhMi(c, x, y, s, 6),
+    steps: [
+      { name: 'Thái dưa chuột & cà rốt', short: 'Chạm đúng lúc dao đi qua vạch vàng', hint: 'Con dao sẽ tự chạy ngang. Chạm đúng lúc dao đi qua mỗi vạch vàng để thái thật đều tay!', make: mkSliceVeg },
+      { name: 'Chiên trứng', short: 'Chạm để lật khi kim nằm trong vùng xanh', hint: 'Đập trứng vào chảo, rồi chạm để lật khi kim vào vùng xanh – vàng đẹp! Mặt thứ hai cũng vậy nhé.', make: mkEgg },
+      {
+        name: 'Kẹp nhân bánh mì', short: 'Kéo nhân vào bánh theo đúng thứ tự', hint: 'Phết pa-tê trước, rồi chả lụa, dưa chuột, đồ chua, rau mùi và cuối cùng là ớt!',
+        make: () => mkDrag({
+          time: 22, target: { x: 470, y: 290, rx: 260, ry: 120 }, drawBase: (c, n) => drawBanhMi(c, 470, 290, 1, n),
+          items: [{ name: 'Pa-tê', icon: ICON.pate }, { name: 'Chả lụa', icon: ICON.chalua }, { name: 'Dưa chuột', icon: emo('🥒') }, { name: 'Đồ chua', icon: emo('🥕') }, { name: 'Rau mùi', icon: emo('🌿') }, { name: 'Ớt', icon: emo('🌶️') }],
+        })
+      },
+    ],
+  },
+  chagio: {
+    name: 'Chả giò', desc: 'Vàng ruộm, giòn tan', thumb: [120, 78, 0.45], final: [300, 175, 1.15], dish: dishChaGio,
+    steps: [
+      { name: 'Băm thịt', short: 'Chạm thật nhanh để băm nhuyễn thịt!', hint: 'Chạm liên tục thật nhanh để băm thịt thật nhuyễn trước khi hết giờ!', make: mkMince },
+      { name: 'Trộn nhân', short: 'Giữ và xoay vòng tròn trong bát để trộn đều', hint: 'Giữ chuột (hoặc ngón tay) và xoay vòng tròn quanh bát để trộn đều thịt, miến, cà rốt và mộc nhĩ.', make: mkMix },
+      { name: 'Cuốn chả giò', short: 'Vuốt theo hướng mũi tên', hint: 'Vuốt theo hướng mũi tên để gấp và cuốn bánh tráng thật chặt tay.', make: mkRoll },
+      { name: 'Chiên chả giò', short: 'Chạm vào cuốn chả khi vàng giòn để vớt ra', hint: 'Mỗi cuốn chín nhanh chậm khác nhau. Chạm vào cuốn chả khi kim nằm trong vùng xanh để vớt ra!', make: mkFry },
+    ],
+  },
+};
+
+// ================= Điều khiển game =================
+let state = 'menu', recipe = null, recipeId = null, stepIdx = 0, scores = [], cur = null;
+let timeLeft = 0, readyT = 0, endT = 0, resultMood = 'happy';
+let best = {};
+try { best = JSON.parse(localStorage.getItem('bepMamaViet.best') || '{}') || {}; } catch (e) { best = {}; }
+function saveBest() { try { localStorage.setItem('bepMamaViet.best', JSON.stringify(best)); } catch (e) { } }
+const medalOf = s => s >= 90 ? ['🥇', 'Huy chương Vàng'] : s >= 70 ? ['🥈', 'Huy chương Bạc'] : s >= 50 ? ['🥉', 'Huy chương Đồng'] : null;
+function show(id) { ['menu', 'intro', 'result', 'final'].forEach(o => $(o).classList.toggle('show', o === id)); }
+
+function buildMenu() {
+  const box = $('cards'); box.innerHTML = '';
+  for (const [id, r] of Object.entries(RECIPES)) {
+    const b = document.createElement('button'); b.className = 'card';
+    const m = best[id] != null ? medalOf(best[id]) : null;
+    b.innerHTML = `<canvas width="240" height="150"></canvas><b>${r.name}</b><small>${r.desc}</small><span class="best">${best[id] != null ? (m ? m[0] : '🍽️') + ' Kỷ lục: ' + best[id] : 'Chưa nấu'}</span>`;
+    const c = b.querySelector('canvas').getContext('2d'); r.dish(c, ...r.thumb);
+    b.onclick = () => { Sfx.init(); startRecipe(id); };
+    box.appendChild(b);
+  }
+}
+function startRecipe(id) { recipe = RECIPES[id]; recipeId = id; stepIdx = 0; scores = []; showIntro(); }
+function showIntro() {
+  const st = recipe.steps[stepIdx];
+  cur = st.make(); timeLeft = cur.time; pops = []; parts = []; pointer.down = false;
+  $('introStep').textContent = `${recipe.name} · Bước ${stepIdx + 1}/${recipe.steps.length}`;
+  $('introTitle').textContent = st.name; $('introHint').textContent = st.hint;
+  state = 'intro'; show('intro');
+}
+$('startBtn').onclick = () => { Sfx.init(); Sfx.tone(660, 0.12, 'triangle', 0.15); show(null); state = 'ready'; readyT = 1.3; };
+function finishStep() {
+  Sfx.sizzleStop();
+  const s = Math.round(clamp(cur.score(), 0, 100)); scores.push(s);
+  const [title, msg, mood] = s >= 90 ? ['Hoàn hảo!', 'Tuyệt vời! Còn giỏi hơn cả Mama!', 'happy'] : s >= 65 ? ['Tốt lắm!', 'Làm tốt lắm con ơi!', 'happy'] : s >= 40 ? ['Tạm được', 'Cố thêm chút nữa nhé!', 'normal'] : ['Ối ối!', 'Đừng lo, Mama sẽ sửa lại cho!', 'angry'];
+  const n = s >= 90 ? 3 : s >= 65 ? 2 : s >= 40 ? 1 : 0;
+  resultMood = mood; $('rateText').textContent = title; $('rateMsg').textContent = msg;
+  $('rateScore').innerHTML = `<span class="stars">${'★'.repeat(n)}${'☆'.repeat(3 - n)}</span> ${s} điểm`;
+  $('nextBtn').textContent = stepIdx === recipe.steps.length - 1 ? 'Xem món ăn ➜' : 'Tiếp tục ➜';
+  state = 'result'; show('result');
+  mood === 'angry' ? Sfx.bad() : Sfx.good();
+}
+$('nextBtn').onclick = () => { stepIdx++; if (stepIdx < recipe.steps.length) showIntro(); else showFinal(); };
+function showFinal() {
+  const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  const isBest = best[recipeId] == null || avg > best[recipeId];
+  if (isBest) { best[recipeId] = avg; saveBest(); }
+  const m = medalOf(avg);
+  $('finalName').textContent = recipe.name;
+  $('finalMedal').textContent = m ? `${m[0]} ${m[1]}!` : '😅 Chưa có huy chương – thử lại nhé!';
+  $('finalScore').textContent = `Điểm trung bình: ${avg}${isBest ? ' · Kỷ lục mới! 🎉' : ''}`;
+  $('stepScores').innerHTML = recipe.steps.map((st, i) => `<span>${st.name}: <b>${scores[i]}</b></span>`).join('');
+  const dc = $('dishCv').getContext('2d'); dc.clearRect(0, 0, 600, 330); recipe.dish(dc, ...recipe.final);
+  cur = null; state = 'final'; show('final'); Sfx.fanfare();
+}
+$('againBtn').onclick = () => startRecipe(recipeId);
+$('menuBtn').onclick = () => { buildMenu(); cur = null; state = 'menu'; show('menu'); };
+$('muteBtn').onclick = () => { Sfx.init(); Sfx.muted = !Sfx.muted; $('muteBtn').textContent = Sfx.muted ? '🔇' : '🔊'; if (Sfx.muted) Sfx.sizzleStop(); };
+
+function drawHUD(c) {
+  const st = recipe.steps[stepIdx];
+  c.fillStyle = 'rgba(255,255,255,.92)'; rrect(c, 10, 8, 780, 62, 18); c.fill(); c.strokeStyle = '#ffb3c8'; c.lineWidth = 3; c.stroke();
+  txt(c, `Bước ${stepIdx + 1}/${recipe.steps.length} · ${st.name}`, 26, 28, 21, '#d94a70', 'left', '900');
+  txt(c, st.short, 26, 53, 15, '#7a5a48', 'left', '600');
+  const f = clamp(timeLeft / cur.time, 0, 1);
+  emoji(c, '⏰', 538, 39, 24);
+  c.fillStyle = '#f3e3e8'; rrect(c, 558, 28, 166, 22, 11); c.fill();
+  if (f > 0) { c.fillStyle = f > 0.5 ? '#5cc96b' : f > 0.25 ? '#ffb52e' : '#ff5d5d'; rrect(c, 558, 28, Math.max(22, 166 * f), 22, 11); c.fill(); }
+  txt(c, Math.ceil(Math.max(0, timeLeft)) + 's', 641, 40, 14, '#5a3420', 'center', '900');
+}
+function drawMamaCanvas(id, mood) { const c = $(id).getContext('2d'); c.clearRect(0, 0, 300, 300); drawMama(c, 150, 135, 0.8, mood); }
+
+function render() {
+  ctx.setTransform(SC, 0, 0, SC, 0, 0);
+  drawKitchen(ctx);
+  if (cur && state !== 'menu' && state !== 'final') { cur.draw(ctx); drawHUD(ctx); }
+  drawFx(ctx);
+  if (state === 'ready') { ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(0, 70, W, H); outlineTxt(ctx, readyT > 0.5 ? 'Sẵn sàng...' : 'Bắt đầu!', W / 2, H / 2, 72, '#ff4d79'); }
+  if (state === 'ending') outlineTxt(ctx, cur.done ? 'Xong rồi!' : 'Hết giờ!', W / 2, H / 2, 72, cur.done ? '#ff4d79' : '#e67e22');
+  if (state === 'menu') drawMamaCanvas('mamaMenu', 'happy');
+  else if (state === 'intro') drawMamaCanvas('mamaIntro', 'normal');
+  else if (state === 'result') drawMamaCanvas('mamaResult', resultMood);
+}
+
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now; T += dt;
+  if (state === 'ready') { readyT -= dt; if (readyT <= 0) { state = 'play'; Sfx.tone(880, 0.15, 'triangle', 0.18); } }
+  else if (state === 'play') {
+    timeLeft -= dt; cur.update(dt);
+    if (cur.done || timeLeft <= 0) { state = 'ending'; endT = cur.done ? 0.9 : 1.1; pointer.down = false; if (!cur.done) Sfx.bad(); }
+  } else if (state === 'ending') { cur.update(dt); endT -= dt; if (endT <= 0) finishStep(); }
+  else if (state === 'final' && Math.random() < 0.4) addParts(rand(0, W), -10, rnd(['#ff6f91', '#ffd23f', '#5fb0f5', '#7cc576']), 1, 80);
+  updFx(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+buildMenu();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
